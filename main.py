@@ -14,23 +14,29 @@ for filename in json_file_names:
         dictionary_json = json.load(f)
         bias = []
         for s in dictionary_json['sentences']:
-            bias_data = s['bias']['score']['pro-russia']
+            bias_data = s['bias']['score']['pro-west']
 
             df = pd.json_normalize(bias_data)
             dataframes.append(df)
 
 data = pd.concat(dataframes) #every index is 0, which should not be the case...
 
-print(data.head())
-s = pd.Series(range(len(data)))
-data = data.set_index(s)
+average = data['avg']
+majority = data['maj']
+intensified = data['intensified']
 
+fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(19.2, 4.8))
+fig.suptitle('Pro-west bias scores', fontsize=18)
 
+ax[0].hist(average, bins=15)
+ax[1].hist(majority, bins=15)
+ax[2].hist(intensified, bins=15)
 
-data_avg = data[['pro-russia.avg', 'pro-west.avg']]
-data_maj = data[['pro-russia.maj', 'pro-west.maj']]
-data_intensified = data[['pro-russia.intensified', 'pro-west.intensified']]
+ax[0].set_xlabel('average')
+ax[1].set_xlabel('majority')
+ax[2].set_xlabel('intensified')
 
-plt.plot(data['pro-west.avg'], label = 'pro-west.avg')
-plt.plot(data['pro-russia.avg'], label = 'pro-russia.avg')
-plt.show()
+plt.setp(ax, xlim=[0.0, 3.0])
+plt.savefig('distributions/bias_pro-west.png')
+
+print('done')
