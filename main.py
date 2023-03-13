@@ -7,10 +7,8 @@ path_to_json_files = 'all-data-as-json/'
 #get all JSON file names as a list
 json_file_names = [filename for filename in os.listdir(path_to_json_files) if filename.endswith('.json')]
 
-dataframes = []
-dfs_russia = []
-dfs_west = []
-dfs_ukraine = []
+dfs_subjectivity = []
+dfs_hidden_assumptions = []
 
 for filename in json_file_names:
     with open(path_to_json_files+filename) as f:
@@ -19,30 +17,26 @@ for filename in json_file_names:
 
         # we explore bias for each sentence in the dataset
         for s in dictionary_json['sentences']:
-            framing_russia = s['framing']['score']['russia']
-            framing_ukraine = s['framing']['score']['ukraine']
-            framing_west = s['framing']['score']['west']
+            subjectivity = s['subjectivity']['score']
+            hidden_assumptions = s['hidden_assumptions']['score']
 
-            df_west = pd.json_normalize(framing_west)
-            df_russia = pd.json_normalize(framing_russia)
-            df_ukraine = pd.json_normalize(framing_ukraine)
+            df_subjectivity = pd.json_normalize(subjectivity)
+            df_hidden_assumptions = pd.json_normalize(hidden_assumptions)
 
-            dfs_west.append(df_west)
-            dfs_ukraine.append(df_ukraine)
-            dfs_russia.append(df_russia)
+            dfs_subjectivity.append(df_subjectivity)
+            dfs_hidden_assumptions.append(df_hidden_assumptions)
 
-framing_west = pd.concat(dfs_west) #every index is 0, which should not be the case...
-framing_russia = pd.concat(dfs_russia)
-framing_ukraine = pd.concat(dfs_ukraine)
+subjectivity = pd.concat(dfs_subjectivity) #every index is 0, which should not be the case...
+hidden_assumptions = pd.concat(dfs_hidden_assumptions)
 print("done")
 
-for tag, framing in {"West":framing_west, "Russia":framing_russia, "Ukraine":framing_ukraine}.items():
-    average = framing['avg']
-    majority = framing['maj']
-    intensified = framing['intensified']
+for tag, bias in {"Subjectivity":subjectivity, "Hidden assumptions":hidden_assumptions}.items():
+    average = bias['avg']
+    majority = bias['maj']
+    intensified = bias['intensified']
 
     fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(19.2, 4.8))
-    fig.suptitle('{} framing scores'.format(tag), fontsize=18)
+    fig.suptitle('{} scores'.format(tag), fontsize=18)
 
     ax[0].hist(average, bins=15)
     ax[1].hist(majority, bins=15)
@@ -52,7 +46,7 @@ for tag, framing in {"West":framing_west, "Russia":framing_russia, "Ukraine":fra
     ax[1].set_xlabel('majority')
     ax[2].set_xlabel('intensified')
 
-    plt.setp(ax, xlim=[-2.0, 2.0])
-    plt.savefig('distributions/framing_{}.png'.format(tag))
+    plt.setp(ax, xlim=[0.0, 3.0])
+    plt.savefig('distributions/{}.png'.format(tag))
 
 print('done')
