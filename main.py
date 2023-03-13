@@ -8,35 +8,51 @@ path_to_json_files = 'all-data-as-json/'
 json_file_names = [filename for filename in os.listdir(path_to_json_files) if filename.endswith('.json')]
 
 dataframes = []
+dfs_russia = []
+dfs_west = []
+dfs_ukraine = []
 
 for filename in json_file_names:
     with open(path_to_json_files+filename) as f:
         dictionary_json = json.load(f)
         bias = []
+
+        # we explore bias for each sentence in the dataset
         for s in dictionary_json['sentences']:
-            bias_data = s['bias']['score']['pro-west']
+            framing_russia = s['framing']['score']['russia']
+            framing_ukraine = s['framing']['score']['ukraine']
+            framing_west = s['framing']['score']['west']
 
-            df = pd.json_normalize(bias_data)
-            dataframes.append(df)
+            df_west = pd.json_normalize(framing_west)
+            df_russia = pd.json_normalize(framing_russia)
+            df_ukraine = pd.json_normalize(framing_ukraine)
 
-data = pd.concat(dataframes) #every index is 0, which should not be the case...
+            dfs_west.append(df_west)
+            dfs_ukraine.append(df_ukraine)
+            dfs_russia.append(df_russia)
 
-average = data['avg']
-majority = data['maj']
-intensified = data['intensified']
+framing_west = pd.concat(dfs_west) #every index is 0, which should not be the case...
+framing_russia = pd.concat(dfs_russia)
+framing_ukraine = pd.concat(dfs_ukraine)
+print("done")
 
-fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(19.2, 4.8))
-fig.suptitle('Pro-west bias scores', fontsize=18)
+for tag, framing in {"West":framing_west, "Russia":framing_russia, "Ukraine":framing_ukraine}.items():
+    average = framing['avg']
+    majority = framing['maj']
+    intensified = framing['intensified']
 
-ax[0].hist(average, bins=15)
-ax[1].hist(majority, bins=15)
-ax[2].hist(intensified, bins=15)
+    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(19.2, 4.8))
+    fig.suptitle('{} framing scores'.format(tag), fontsize=18)
 
-ax[0].set_xlabel('average')
-ax[1].set_xlabel('majority')
-ax[2].set_xlabel('intensified')
+    ax[0].hist(average, bins=15)
+    ax[1].hist(majority, bins=15)
+    ax[2].hist(intensified, bins=15)
 
-plt.setp(ax, xlim=[0.0, 3.0])
-plt.savefig('distributions/bias_pro-west.png')
+    ax[0].set_xlabel('average')
+    ax[1].set_xlabel('majority')
+    ax[2].set_xlabel('intensified')
+
+    plt.setp(ax, xlim=[-2.0, 2.0])
+    plt.savefig('distributions/framing_{}.png'.format(tag))
 
 print('done')
