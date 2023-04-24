@@ -5,9 +5,10 @@ from ernie import SentenceClassifier, Models
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.metrics import roc_auc_score
 
-model = "intensified"
+dataset = "intensified"
+model_name = None
 
-data = pd.read_csv("subjectivity_{}.csv".format(model))
+data = pd.read_csv("subjectivity_{}.csv".format(dataset))
 
 #2 classes:
 # < 1, >= 1
@@ -25,7 +26,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y,
 
 #--- Load the model ---
 print("model loading")
-classifier = SentenceClassifier(model_path='./model_{}1'.format(model))
+classifier = SentenceClassifier(model_path='./model_{}_{}'.format(dataset, model_name))
 print("model loaded")
 
 #--- Predicting ---
@@ -33,10 +34,8 @@ X_test_list = X_test["sentences"].values.tolist()
 probabilities = [p for p in classifier.predict(X_test_list)]
 array_probs = np.array(probabilities)
 
-y_pred = []
 
-for array in array_probs:
-    y_pred.append(array.argmax())
+y_pred = np.argmax(array_probs, axis=1)
 
 #--- Evaluating ---
 
@@ -56,3 +55,14 @@ print(roc_auc)
 #0.55
 #intensified
 #0.5826527996484417
+
+#Bert Based Cased intensified vote
+#41/41 [==============================] - 1258s 30s/step - loss: 0.4889 - accuracy: 0.8155 - val_loss: 0.4087 - val_accuracy: 0.8469
+#41/41 [==============================] - 840s 21s/step - loss: 0.4283 - accuracy: 0.8232 - val_loss: 0.3831 - val_accuracy: 0.8469
+#41/41 [==============================] - 4593s 114s/step - loss: 0.3486 - accuracy: 0.8331 - val_loss: 0.3999 - val_accuracy: 0.8219
+#41/41 [==============================] - 695s 17s/step - loss: 0.2434 - accuracy: 0.8864 - val_loss: 0.5784 - val_accuracy: 0.8375
+
+#try other models - Roberta, bert large, etc.
+#tabke of results with different models
+#graph od different number of epochs (1 to 10??)
+# make a CLI with model arguments
